@@ -2,8 +2,6 @@ local plugin_name = ({...})[1]:match("^kong%.plugins%.([^%.]+)")
 
 local aws_v4            = require ("kong.plugins." .. plugin_name .. ".v4")
 
-local plugin            = require("kong.plugins.base_plugin"):extend()
-
 local http              = require "resty.http"
 local cjson             = require "cjson.safe"
 local meta              = require "kong.meta"
@@ -23,6 +21,11 @@ local escape            = ngx.escape_uri
 local ipairs            = ipairs
 
 local AWS_PORT = 443
+
+local plugin = {
+  VERSION = "1.0.0-0",
+  PRIORITY = 750,
+}
 
 local function iso8601_to_epoch(date_iso8601)
   local inYear, inMonth, inDay, inHour, inMinute, inSecond, inZone = string_match(date_iso8601, '^(%d%d%d%d)-(%d%d)-(%d%d)T(%d%d):(%d%d):(%d%d)(.-)$')
@@ -77,13 +80,7 @@ local function get_keys_from_cache(iam_role,metadata_url,override_ttl,ttl)
 end
 
 
-function plugin:new()
-  plugin.super.new(self, plugin_name)
-end
-
-
 function plugin:access(conf)
-  plugin.super.access(self)
   local var=ngx.var
 
   local body, err, mimetype = kong.request.get_body()
@@ -197,10 +194,6 @@ function plugin:access(conf)
 
   return kong.response.exit(res.status, content, headers)
 end
-
-
-plugin.PRIORITY = 750
-plugin.VERSION = "1.0.0-0"
 
 
 return plugin
